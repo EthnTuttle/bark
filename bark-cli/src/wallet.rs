@@ -285,6 +285,9 @@ pub struct CreateOpts {
 	/// Use mutinynet
 	#[arg(long)]
 	pub mutinynet: bool,
+	/// Use the public BIP95 testnet5 network
+	#[arg(long)]
+	pub testnet5: bool,
 
 	/// Recover a wallet with an existing mnemonic.
 	/// This currently only works for on-chain funds.
@@ -364,12 +367,13 @@ pub async fn create_wallet(
 ) -> anyhow::Result<()> {
 	debug!("Creating wallet in {}", datadir.display());
 
-	let net = match (opts.mainnet, opts.signet, opts.regtest, opts.mutinynet) {
-		(true,  false, false, false) => BarkNetwork::Mainnet,
-		(false, true,  false, false) => BarkNetwork::Signet,
-		(false, false, true,  false) => BarkNetwork::Regtest,
-		(false, false, false, true ) => BarkNetwork::Mutinynet,
-		_ => bail!("Specify exactly one of --mainnet, --signet, --regtest or --mutinynet"),
+	let net = match (opts.mainnet, opts.signet, opts.regtest, opts.mutinynet, opts.testnet5) {
+		(true,  false, false, false, false) => BarkNetwork::Mainnet,
+		(false, true,  false, false, false) => BarkNetwork::Signet,
+		(false, false, true,  false, false) => BarkNetwork::Regtest,
+		(false, false, false, true,  false) => BarkNetwork::Mutinynet,
+		(false, false, false, false, true ) => BarkNetwork::Testnet5,
+		_ => bail!("Specify exactly one of --mainnet, --signet, --regtest, --mutinynet or --testnet5"),
 	};
 
 	// check for non-config file contents in the datadir and wipe if force
@@ -607,6 +611,7 @@ mod test {
 			regtest: false,
 			signet: true,
 			mutinynet: false,
+			testnet5: false,
 			mnemonic: None,
 			birthday_height: None,
 			config: ConfigOpts::default(),

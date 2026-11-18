@@ -734,6 +734,23 @@ mod test {
 		cfg.validate().expect("error validating default config");
 	}
 
+	/// The captaind/watchmand config network field is a bitcoin::Network
+	/// parsed from the toml string; "testnet5" must select Testnet5 and
+	/// validate like the other test networks.
+	#[test]
+	fn captaind_config_accepts_testnet5() {
+		#[derive(serde::Deserialize)]
+		struct N { network: bitcoin::Network }
+		let n: N = toml::from_str("network = \"testnet5\"").expect("testnet5 must parse");
+		assert_eq!(n.network, bitcoin::Network::Testnet5);
+
+		let mut cfg = Config::load(DEFAULT_CAPTAIND_CONFIG_PATH)
+			.expect("error loading config");
+		cfg.bitcoind.cookie = Some(".cookie".into());
+		cfg.network = bitcoin::Network::Testnet5;
+		cfg.validate().expect("a testnet5 captaind config must validate");
+	}
+
 	#[test]
 	fn default_offboard_fixed_vb_covers_a_two_in_three_out_keyspend() {
 		let cfg = Config::load(DEFAULT_CAPTAIND_CONFIG_PATH).unwrap();

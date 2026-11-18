@@ -258,6 +258,7 @@ impl Invoice {
 				ChainHash::BITCOIN => Network::Bitcoin,
 				ChainHash::TESTNET3 => Network::Testnet,
 				ChainHash::TESTNET4 => Network::Testnet4,
+				ChainHash::TESTNET5 => Network::Testnet5,
 				ChainHash::SIGNET => Network::Signet,
 				ChainHash::REGTEST => Network::Regtest,
 				_ => panic!("unsupported network"),

@@ -20,6 +20,8 @@ pub enum BarkNetwork {
 	Signet,
 	/// Mutinynet
 	Mutinynet,
+	/// The public BIP95 testnet5 network
+	Testnet5,
 	/// Any regtest network
 	Regtest,
 }
@@ -31,6 +33,7 @@ impl BarkNetwork {
 			Self::Mainnet => Network::Bitcoin,
 			Self::Signet => Network::Signet,
 			Self::Mutinynet => Network::Signet,
+			Self::Testnet5 => Network::Testnet5,
 			Self::Regtest => Network::Regtest,
 		}
 	}
@@ -42,6 +45,7 @@ impl fmt::Display for BarkNetwork {
 			Self::Mainnet => f.write_str("mainnet"),
 			Self::Signet => f.write_str("signet"),
 			Self::Mutinynet => f.write_str("mutinynet"),
+			Self::Testnet5 => f.write_str("testnet5"),
 			Self::Regtest => f.write_str("regtest"),
 		}
 	}
@@ -348,6 +352,35 @@ impl Config {
 #[cfg(test)]
 mod test {
 	use super::*;
+
+	/// Testnet5 (BIP95) must parse and round-trip in bark config and select
+	/// the right chain identity: bitcoin's Network::Testnet5 with the public
+	/// BIP95 genesis, treated as a test network like signet/regtest.
+	#[test]
+	fn testnet5_network_identity() {
+		use std::str::FromStr;
+
+		assert_eq!(BarkNetwork::Testnet5.as_bitcoin(), Network::Testnet5);
+		assert_eq!(BarkNetwork::Testnet5.to_string(), "testnet5");
+
+		// Persisted wallet properties store the network as a string.
+		assert_eq!(Network::from_str("testnet5").unwrap(), Network::Testnet5);
+		assert_eq!(Network::Testnet5.to_string(), "testnet5");
+
+		// Chain-source verification compares against this genesis.
+		let genesis = bitcoin::blockdata::constants::genesis_block(Network::Testnet5);
+		assert_eq!(
+			genesis.block_hash().to_string(),
+			"00000000000008c1637e7d3252dc1c333d4546fd6fff6a474b200d674a91d497",
+		);
+
+		// Non-mainnet defaults apply, identical to the other test networks.
+		let t5 = Config::network_default(Network::Testnet5);
+		let signet = Config::network_default(Network::Signet);
+		assert_eq!(t5.vtxo_refresh_expiry_threshold, signet.vtxo_refresh_expiry_threshold);
+		assert_eq!(t5.fallback_fee_rate, signet.fallback_fee_rate);
+		assert_eq!(t5.offboard_required_confirmations, signet.offboard_required_confirmations);
+	}
 
 	/// A wallet created before a field existed has a config file without it, so
 	/// loading must fall back to the network default instead of failing.

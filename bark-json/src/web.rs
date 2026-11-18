@@ -237,6 +237,8 @@ pub enum BarkNetwork {
 	Signet,
 	/// Mutinynet
 	Mutinynet,
+	/// The public BIP95 testnet5 network
+	Testnet5,
 	/// Any regtest network
 	Regtest,
 }
@@ -854,4 +856,27 @@ pub struct WalletDeleteResponse {
 	pub deleted: bool,
 	pub fingerprint: Option<String>,
 	pub message: String,
+}
+
+#[cfg(test)]
+mod test {
+	use super::*;
+
+	/// The REST API network strings are part of the wire format; testnet5
+	/// must round-trip exactly like the existing networks.
+	#[test]
+	fn bark_network_serde_round_trip() {
+		let cases = [
+			(BarkNetwork::Mainnet, "\"mainnet\""),
+			(BarkNetwork::Signet, "\"signet\""),
+			(BarkNetwork::Mutinynet, "\"mutinynet\""),
+			(BarkNetwork::Testnet5, "\"testnet5\""),
+			(BarkNetwork::Regtest, "\"regtest\""),
+		];
+		for (net, s) in cases {
+			assert_eq!(serde_json::to_string(&net).unwrap(), s);
+			let back: BarkNetwork = serde_json::from_str(s).unwrap();
+			assert!(back == net);
+		}
+	}
 }
