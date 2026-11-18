@@ -124,3 +124,11 @@ tracing-core = { version = "0.1.35" }
 tracing-opentelemetry = "0.31.0"
 tracing-subscriber = { version = "0.3.22", features = [ "std", "registry", "ansi", "fmt", "json", "env-filter" ] }
 tracing-attributes = "0.1.31"
+
+# Testnet5 (BIP95) support: rust-bitcoin 0.32.102 + backport of
+# rust-bitcoin/rust-bitcoin#7160 (constants aligned with Core PR #35861).
+# No released bitcoin 0.32.x has a Testnet5 variant, so the whole workspace
+# resolves to this patched crate. It is byte-identical to crates-io 0.32.102
+# apart from the additive Testnet5 network identity.
+[patch.crates-io]
+bitcoin = { git = "https://github.com/EthnTuttle/rust-bitcoin", branch = "testnet5-0.32" }
